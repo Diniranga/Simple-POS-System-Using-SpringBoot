@@ -28,7 +28,14 @@ public class AuthGatewayFilterFactory implements GatewayFilterFactory<AuthGatewa
                 if (response.getStatusCode() == HttpStatus.OK) {
                     String responseBody = response.getBody();
                     assert responseBody != null;
-                    if(responseBody.equals(config.role)){
+                    boolean roleMatched = false;
+                    for (String role : config.getRoles()) {
+                        if (responseBody.equals(role)) {
+                            roleMatched = true;
+                            break;
+                        }
+                    }
+                    if (roleMatched) {
                         return chain.filter(exchange);
                     }else{
                         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
@@ -48,14 +55,19 @@ public class AuthGatewayFilterFactory implements GatewayFilterFactory<AuthGatewa
 
     public static class Config {
 
-        private String role;
+        private String[] roles;
 
-        public Config(String myVariable) {
-            this.role = myVariable;
+        public Config(String[] roles) {
+            this.roles = roles;
         }
 
-        public void setMyVariable(String myVariable) {
-            this.role = myVariable;
+        public String[] getRoles() {
+            return roles;
+        }
+
+        public void setRoles(String[] roles) {
+            this.roles = roles;
         }
     }
+
 }
