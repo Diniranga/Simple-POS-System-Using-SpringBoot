@@ -25,6 +25,7 @@ public class Customer {
     private int totalCost;
     private OrderStatus orderStatus;
     private List<String> activeOrders;
+    private String password;
 
 
     public enum OrderStatus {

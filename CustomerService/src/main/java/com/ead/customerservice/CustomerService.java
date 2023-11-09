@@ -5,8 +5,9 @@ import com.ead.customerservice.Exceptions.UserNotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
@@ -36,15 +37,51 @@ public class CustomerService {
     public ResponseEntity<String> saveCustomer(Customer customer) {
         try {
             Customer existingCustomer = customerRepository.findByEmail(customer.getEmail());
-            if (existingCustomer != null) {
-                throw new UserAlreadyExistsException("Customer with email: " + customer.getEmail() + " is already exist");
-            }
             customer.setUserId(generateUserId());
-            customer.setOrderStatus(Customer.OrderStatus.NOT_APPLICABLE);
-            customerRepository.save(customer);
-            return ResponseEntity.ok("Customer saved successfully");
+            if (existingCustomer != null) {
+                throw new UserAlreadyExistsException("Email: " + customer.getEmail() + " is already exist");
+            }
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<?> response = restTemplate.getForEntity(
+                    "http://localhost:8081/auth/checkEmailExists/{email}",
+                    String.class,
+                    customer.getEmail()
+            );
+
+            if (response.getStatusCode() == HttpStatus.OK) {
+                String requestJson = "{" +
+                        "\"userId\":\"" + customer.getUserId() + "\"," +
+                        "\"firstName\":\"" + customer.getFirstName() + "\"," +
+                        "\"lastName\":\"" + customer.getLastName() + "\"," +
+                        "\"email\":\"" + customer.getEmail() + "\"," +
+                        "\"password\":\"" + customer.getPassword() + "\"," +
+                        "\"role\":\"CUSTOMER\"" +
+                        "}";
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+
+                HttpEntity<String> requestEntity = new HttpEntity<>(requestJson, headers);
+                ResponseEntity<String> registerResponse = restTemplate.postForEntity(
+                        "http://localhost:8081/auth/register",
+                        requestEntity,
+                        String.class
+                );
+
+                if (registerResponse.getStatusCode() == HttpStatus.OK) {
+                    customer.setOrderStatus(Customer.OrderStatus.NOT_APPLICABLE);
+                    customerRepository.save(customer);
+                    return ResponseEntity.ok("Customer saved successfully");
+                } else {
+                    throw new UserAlreadyExistsException("Error registering user");
+                }
+            } else {
+                throw new UserAlreadyExistsException("Email: " + customer.getEmail() + " is already exist");
+            }
         } catch (UserAlreadyExistsException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (HttpClientErrorException e) {
+            return ResponseEntity.badRequest().body("Email: " + customer.getEmail() + " is already exist");
         }
     }
 
