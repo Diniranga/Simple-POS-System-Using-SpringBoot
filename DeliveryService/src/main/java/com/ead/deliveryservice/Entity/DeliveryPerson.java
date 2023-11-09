@@ -20,5 +20,5 @@ public class DeliveryPerson {
     private String email;
     private String contactNumber;
     private String address;
-
+    private String password;
 }
