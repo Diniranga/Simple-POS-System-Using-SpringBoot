@@ -6,7 +6,6 @@ import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-// Example code using Spring Cloud Gateway
 @Configuration
 public class GatewayConfig {
 
@@ -24,9 +23,11 @@ public class GatewayConfig {
                         .uri("http://localhost:8040"))
                 .route("delivery-person", r -> r
                         .path("/deliveryPerson/add")
+                        .filters(f -> f.filter(authGatewayFilterFactory.apply(new AuthGatewayFilterFactory.Config(new String[]{"ADMIN"}))))
                         .uri("http://localhost:8050"))
                 .route("inventory-manager-service", r -> r
                         .path("/inventoryManager/add")
+                        .filters(f -> f.filter(authGatewayFilterFactory.apply(new AuthGatewayFilterFactory.Config(new String[]{"ADMIN"}))))
                         .uri("http://localhost:8030"))
                 .route("inventory-manager-service.", r -> r
                         .path("/inventoryManager/**")
@@ -38,19 +39,19 @@ public class GatewayConfig {
                         .uri("http://localhost:8040"))
                 .route("product-service", r -> r
                         .path("/products/**")
-                        .filters(f -> f.filter(authGatewayFilterFactory.apply(new AuthGatewayFilterFactory.Config(new String[]{"INVENTORY_KEEPER"}))))
+                        .filters(f -> f.filter(authGatewayFilterFactory.apply(new AuthGatewayFilterFactory.Config(new String[]{"INVENTORY_KEEPER","ADMIN"}))))
                         .uri("http://localhost:8070"))
                 .route("delivery-service", r -> r
                         .path("/delivery/**")
-                        .filters(f -> f.filter(authGatewayFilterFactory.apply(new AuthGatewayFilterFactory.Config(new String[]{"DELIVERY_PERSON"}))))
+                        .filters(f -> f.filter(authGatewayFilterFactory.apply(new AuthGatewayFilterFactory.Config(new String[]{"DELIVERY_PERSON","ADMIN"}))))
                         .uri("http://localhost:8050"))
                 .route("delivery-person", r -> r
                         .path("/deliveryPerson/**")
-                        .filters(f -> f.filter(authGatewayFilterFactory.apply(new AuthGatewayFilterFactory.Config(new String[]{"DELIVERY_PERSON"}))))
+                        .filters(f -> f.filter(authGatewayFilterFactory.apply(new AuthGatewayFilterFactory.Config(new String[]{"DELIVERY_PERSON","ADMIN"}))))
                         .uri("http://localhost:8050"))
                 .route("order-service", r -> r
                         .path("/orders/**")
-                        .filters(f -> f.filter(authGatewayFilterFactory.apply(new AuthGatewayFilterFactory.Config(new String[]{"DELIVERY_PERSON"}))))
+                        .filters(f -> f.filter(authGatewayFilterFactory.apply(new AuthGatewayFilterFactory.Config(new String[]{"DELIVERY_PERSON","ADMIN"}))))
                         .uri("http://localhost:8060"))
                 .build();
     }
