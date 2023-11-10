@@ -3,6 +3,7 @@ package com.ead.orderserver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -32,7 +33,7 @@ public class OrderService {
     public ResponseEntity<Order> saveOrder(Order order){
         order.setOrderId(generateProductId());
         order.setOrderTime(getCurrentTime());
-        order.setOrderStatus(OrderStatus.PACKING);
+        order.setOrderStatus(OrderStatus.IN_QUEUE);
         return ResponseEntity.ok(orderRepository.save(order));
     }
 
@@ -44,15 +45,20 @@ public class OrderService {
         return ResponseEntity.ok(orderRepository.getOrderByOrderId(orderId));
     }
 
-//    public ResponseEntity<?> setStatus(String orderId, OrderStatus orderStatus){
-//        Order order = orderRepository.getOrderByOrderId(orderId);
-//        if(order == null){
-//            return ResponseEntity.badRequest().body("Order not found");
-//        }
-//        String orderUrl = "http://localhost:8080/setOrderStatus/" + order.getCustomerId() + "/" + orderStatus;
-//        ResponseEntity<Order> savedOrder = restTemplate.postForEntity(orderUrl,order,Order.class);
-//
-//        order.setOrderStatus(orderStatus);
-//        return ResponseEntity.ok(orderRepository.save(order));
-//    }
+    public ResponseEntity<?> setStatus(String orderId, OrderStatus orderStatus){
+        Order order = orderRepository.getOrderByOrderId(orderId);
+        if(order == null){
+            return ResponseEntity.badRequest().body("Order not found");
+        }
+        RestTemplate restTemplate = new RestTemplate();
+        String orderUrl = "http://localhost:8080/customers/setOrderStatus/" + order.getCustomerId() + "/" + orderStatus;
+        ResponseEntity<Order> savedOrder = restTemplate.postForEntity(orderUrl,order,Order.class);
+
+        order.setOrderStatus(orderStatus);
+        return ResponseEntity.ok(orderRepository.save(order));
+    }
+
+
+
+//    WRITE A  CODE TO DELETE ORDER
 }

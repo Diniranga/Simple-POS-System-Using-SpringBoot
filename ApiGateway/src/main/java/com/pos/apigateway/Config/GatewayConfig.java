@@ -22,6 +22,16 @@ public class GatewayConfig {
                 .route("add-customer", r -> r
                         .path("/customers/add")
                         .uri("http://localhost:8040"))
+                .route("delivery-person", r -> r
+                        .path("/deliveryPerson/add")
+                        .uri("http://localhost:8050"))
+                .route("inventory-manager-service", r -> r
+                        .path("/inventoryManager/add")
+                        .uri("http://localhost:8030"))
+                .route("inventory-manager-service.", r -> r
+                        .path("/inventoryManager/**")
+                        .filters(f -> f.filter(authGatewayFilterFactory.apply(new AuthGatewayFilterFactory.Config(new String[]{"CUSTOMER", "ADMIN"}))))
+                        .uri("http://localhost:8030"))
                 .route("customer-service", r -> r
                         .path("/customers/**")
                         .filters(f -> f.filter(authGatewayFilterFactory.apply(new AuthGatewayFilterFactory.Config(new String[]{"CUSTOMER", "ADMIN"}))))
@@ -31,7 +41,11 @@ public class GatewayConfig {
                         .filters(f -> f.filter(authGatewayFilterFactory.apply(new AuthGatewayFilterFactory.Config(new String[]{"INVENTORY_KEEPER"}))))
                         .uri("http://localhost:8070"))
                 .route("delivery-service", r -> r
-                        .path("/products/**")
+                        .path("/delivery/**")
+                        .filters(f -> f.filter(authGatewayFilterFactory.apply(new AuthGatewayFilterFactory.Config(new String[]{"DELIVERY_PERSON"}))))
+                        .uri("http://localhost:8050"))
+                .route("delivery-person", r -> r
+                        .path("/deliveryPerson/**")
                         .filters(f -> f.filter(authGatewayFilterFactory.apply(new AuthGatewayFilterFactory.Config(new String[]{"DELIVERY_PERSON"}))))
                         .uri("http://localhost:8050"))
                 .route("order-service", r -> r

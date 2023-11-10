@@ -20,7 +20,6 @@
         <module>AuthService</module>
         <module>CustomerService</module>
         <module>DeliveryService</module>
-        <module>EurekaServer</module>
         <module>OrderServer</module>
     </modules>
     <properties>

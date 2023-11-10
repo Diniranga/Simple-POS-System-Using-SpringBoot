@@ -138,7 +138,7 @@ public class CustomerService {
             Customer customer = customerRepository.findById(userId)
                     .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
             String productId = cartItem.getProductId();
-            String productUrl = "http://localhost:8070/product/getById/" + productId;
+            String productUrl = "http://localhost:8070/products/getById/" + productId;
             ResponseEntity<String> productResponse = restTemplate.getForEntity(productUrl, String.class);
             if (productResponse.getStatusCode().is2xxSuccessful()) {
                 if (productResponse.getBody() == null) {
@@ -174,7 +174,7 @@ public class CustomerService {
             Customer customer = customerRepository.findById(userId)
                     .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
             String productId = cartItem.getProductId();
-            String productUrl = "http://localhost:8070/product/getById/" + productId;
+            String productUrl = "http://localhost:8070/products/getById/" + productId;
             ResponseEntity<String> productResponse = restTemplate.getForEntity(productUrl, String.class);
             if (productResponse.getStatusCode().is2xxSuccessful()) {
                 if (productResponse.getBody() == null) {
@@ -268,7 +268,7 @@ public class CustomerService {
             }
             for (CartItem item : currentCartItems) {
                 String productId = item.getProductId();
-                String productUrl = "http://localhost:8070/product/checkAvailability/" + productId + "/" + item.getQuantity();
+                String productUrl = "http://localhost:8070/products/checkAvailability/" + productId + "/" + item.getQuantity();
                 ResponseEntity<Integer> productResponse = restTemplate.getForEntity(productUrl, Integer.class);
                 if (productResponse.getStatusCode().is2xxSuccessful()) {
                     if (productResponse.getBody() == null) {
@@ -284,18 +284,27 @@ public class CustomerService {
             }
             for(CartItem item: currentCartItems){
                 String productId = item.getProductId();
-                String productUrl = "http://localhost:8070/product/updateQuantity/" + productId + "/" + item.getQuantity();
+                String productUrl = "http://localhost:8070/products/updateQuantity/" + productId + "/" + item.getQuantity();
                 restTemplate.put(productUrl,null);
             }
             Order order = new Order();
             order.setCustomerId(userId);
             order.setOrderItems(currentCartItems);
-            String orderUrl = "http://localhost:8060/order/add";
+            String orderUrl = "http://localhost:8060/orders/add";
             ResponseEntity<Order> savedOrder = restTemplate.postForEntity(orderUrl,order,Order.class);
-            System.out.println("Order ID: " + Objects.requireNonNull(savedOrder.getBody()).getOrderId());
-            customer.getActiveOrders().add(Objects.requireNonNull(savedOrder.getBody()).getOrderId());
-            customer.setOrderStatus(Customer.OrderStatus.IN_QUEUE);
-            return ResponseEntity.ok("Order placed successfully");
+            if (savedOrder.getStatusCode().is2xxSuccessful()) {
+                Order savedOrderObject = savedOrder.getBody();
+                if (savedOrderObject != null) {
+                    System.out.println("Order ID: " + savedOrderObject.getOrderId());
+                    customer.getActiveOrders().add(savedOrderObject.getOrderId());
+                    customer.setOrderStatus(Customer.OrderStatus.IN_QUEUE);
+                    return ResponseEntity.ok("Order placed successfully");
+                } else {
+                    return ResponseEntity.badRequest().body("Error: Response body is null");
+                }
+            } else {
+                return ResponseEntity.badRequest().body("Error: Request was not successful. Status code: " + savedOrder.getStatusCodeValue());
+            }
         }catch (UserNotFoundException e){
             return ResponseEntity.badRequest().body(e.getMessage());
         }catch (Exception e){

@@ -41,6 +41,7 @@ public class ProductService {
         return productRepository.findProductByProductId(id);
     }
 
+
     public ResponseEntity<String> updateProduct(String id, Product product){
         Product productToUpdate = productRepository.findProductByProductId(id);
         if(productToUpdate == null){
@@ -82,4 +83,6 @@ public class ProductService {
         productRepository.save(product);
         return ResponseEntity.ok(product);
     }
+
+//    FILTER PRODUCT BY CATEGORY
 }

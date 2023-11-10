@@ -1,10 +1,10 @@
-package com.ead.eurekaserver;
+package com.ead.inventorymanagerservice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class EurekaServerApplicationTests {
+class InventoryManagerServiceApplicationTests {
 
     @Test
     void contextLoads() {
