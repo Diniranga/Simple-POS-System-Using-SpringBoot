@@ -73,7 +73,7 @@ public class CustomerController {
         return customerService.getOrderStatus(userId,orderId);
     }
 
-    @PostMapping("/setOrderStatus/{userId}/{orderId}/{orderStatus}")
+    @PutMapping("/setOrderStatus/{userId}/{orderId}/{orderStatus}")
     public ResponseEntity<?> setOrderStatus(@PathVariable String userId,@PathVariable String orderId,@PathVariable String orderStatus){
         return customerService.setOrderStatus(userId,orderId,orderStatus);
     }

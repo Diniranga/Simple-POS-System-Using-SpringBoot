@@ -29,9 +29,16 @@ public class OrderController {
         return orderService.getOrderByOrderId(orderId);
     }
 
-//    @PutMapping("/setStatus/{orderId}/{orderStatus}")
-//    public ResponseEntity<?> setStatus(@PathVariable String orderId, @PathVariable OrderStatus orderStatus){
-//        return orderService(orderId, orderStatus);
+    @PutMapping("/setStatus/{orderId}/{orderStatus}")
+    public ResponseEntity<?> setStatus(@PathVariable String orderId, @PathVariable OrderStatus orderStatus) {
+        return orderService.setStatus(orderId, orderStatus);
+    }
+
+    @GetMapping("/getOrderByStatus/{orderStatus}")
+    public ResponseEntity<?> getOrderByOrderStatus(@PathVariable OrderStatus orderStatus){
+        return ResponseEntity.ok(orderService.getOrderByOrderStatus(orderStatus));
+    }
+
 }
 
 

@@ -59,11 +59,13 @@ public class OrderService {
             return ResponseEntity.badRequest().body("Order not found");
         }
         RestTemplate restTemplate = new RestTemplate();
-        String orderUrl = "http://localhost:8080/customers/setOrderStatus/" + order.getCustomerId() + "/" + orderStatus;
-        ResponseEntity<Order> savedOrder = restTemplate.postForEntity(orderUrl,order,Order.class);
-
-        order.setOrderStatus(orderStatus);
+        String orderUrl = "http://localhost:8040/customers/setOrderStatus/" + order.getCustomerId() + "/" +orderId +"/" + orderStatus;
+        restTemplate.put(orderUrl, null);
         return ResponseEntity.ok(orderRepository.save(order));
+    }
+
+    public List<Order> getOrderByOrderStatus(OrderStatus orderStatus){
+        return orderRepository.getOrderByOrderStatus(orderStatus);
     }
 
 
