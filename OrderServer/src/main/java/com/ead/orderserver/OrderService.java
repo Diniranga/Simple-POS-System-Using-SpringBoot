@@ -31,10 +31,18 @@ public class OrderService {
     }
 
     public ResponseEntity<Order> saveOrder(Order order){
-        order.setOrderId(generateProductId());
-        order.setOrderTime(getCurrentTime());
-        order.setOrderStatus(OrderStatus.IN_QUEUE);
-        return ResponseEntity.ok(orderRepository.save(order));
+        try {
+            if(order.getCustomerId() == null){
+                return ResponseEntity.badRequest().body(null);
+            }
+            order.setOrderId(generateProductId());
+            order.setOrderTime(getCurrentTime());
+            order.setOrderStatus(OrderStatus.IN_QUEUE);
+            return ResponseEntity.ok(orderRepository.save(order));
+        }
+        catch (Exception e){
+            return ResponseEntity.badRequest().body(null);
+        }
     }
 
     public List<Order> getAllOrders(){

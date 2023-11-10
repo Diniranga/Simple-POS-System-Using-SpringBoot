@@ -68,14 +68,14 @@ public class CustomerController {
     }
 
 
-    @GetMapping("/getOrderStatus/{userId}")
-    public ResponseEntity<?> getOrderStatus(@PathVariable String userId){
-        return customerService.getOrderStatus(userId);
+    @GetMapping("/getOrderStatus/{userId}/{orderId}")
+    public ResponseEntity<?> getOrderStatus(@PathVariable String userId,@PathVariable String orderId){
+        return customerService.getOrderStatus(userId,orderId);
     }
 
-    @PostMapping("/setOrderStatus/{userId}/{orderStatus}")
-    public ResponseEntity<?> setOrderStatus(@PathVariable String userId,@PathVariable String orderStatus){
-        return customerService.setOrderStatus(userId,orderStatus);
+    @PostMapping("/setOrderStatus/{userId}/{orderId}/{orderStatus}")
+    public ResponseEntity<?> setOrderStatus(@PathVariable String userId,@PathVariable String orderId,@PathVariable String orderStatus){
+        return customerService.setOrderStatus(userId,orderId,orderStatus);
     }
 
     @PostMapping("/placeOrder/{userId}")

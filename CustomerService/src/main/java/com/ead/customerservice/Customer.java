@@ -23,8 +23,7 @@ public class Customer {
     private String address;
     private List<CartItem> cartItems;
     private int totalCost;
-    private OrderStatus orderStatus;
-    private List<String> activeOrders;
+    private List<ActiveOrder> activeOrders;
     private String password;
 
 
@@ -47,7 +46,6 @@ public class Customer {
                 ", address='" + address + '\'' +
                 ", cartItems=" + cartItems +
                 ", totalCost=" + totalCost +
-                ", orderStatus=" + orderStatus +
                 '}';
     }
 }

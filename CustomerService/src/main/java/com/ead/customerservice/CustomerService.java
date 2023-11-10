@@ -69,7 +69,6 @@ public class CustomerService {
                 );
 
                 if (registerResponse.getStatusCode() == HttpStatus.OK) {
-                    customer.setOrderStatus(Customer.OrderStatus.NOT_APPLICABLE);
                     customerRepository.save(customer);
                     return ResponseEntity.ok("Customer saved successfully");
                 } else {
@@ -231,11 +230,20 @@ public class CustomerService {
         }
     }
 
-    public ResponseEntity<?> getOrderStatus(String userId) {
+    public ResponseEntity<?> getOrderStatus(String userId,String orderId) {
         try {
             Customer customer = customerRepository.findById(userId)
                     .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
-            return ResponseEntity.ok(customer.getOrderStatus().toString());
+            List<ActiveOrder> activeOrders = customer.getActiveOrders();
+            if(activeOrders == null){
+                return ResponseEntity.ok("No active orders Found");
+            }
+            for(ActiveOrder activeOrder : activeOrders){
+                if(Objects.equals(activeOrder.getOrderId(), orderId)){
+                    return ResponseEntity.ok(activeOrder.getOrderStatus());
+                }
+            }
+            return ResponseEntity.ok("No order found with id: " + orderId);
         }catch (UserNotFoundException e){
             return ResponseEntity.badRequest().body(e.getMessage());
         }catch (Exception e){
@@ -243,16 +251,25 @@ public class CustomerService {
         }
     }
 
-    public ResponseEntity<?> setOrderStatus (String userId, String status){
+    public ResponseEntity<?> setOrderStatus (String userId, String orderId,String status){
         try {
             Customer customer = customerRepository.findById(userId)
                     .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
-            if(status.equals("PACKING") || status.equals("READY_TO_DISPATCH") || status.equals("SHIPPED") || status.equals("DELIVERED") || status.equals("NOT_APPLICABLE")){
-                customer.setOrderStatus(Customer.OrderStatus.valueOf(status));
-                customerRepository.save(customer);
-                return ResponseEntity.ok("Order status updated successfully");
+            List<ActiveOrder> activeOrders = customer.getActiveOrders();
+            if(activeOrders==null){
+                return ResponseEntity.ok("There are no any available Active Orders");
             }
-            return ResponseEntity.badRequest().body("Invalid order status");
+            for(ActiveOrder activeOrder:activeOrders){
+                if(Objects.equals(activeOrder.getOrderId(), orderId)){
+                    if(status.equals("IN_QUEUE") || status.equals("PACKING") || status.equals("READY_TO_DISPATCH") || status.equals("SHIPPED") || status.equals("DELIVERED") || status.equals("NOT_APPLICABLE")){
+                        activeOrder.setOrderStatus(OrderStatus.valueOf(status));
+                        customerRepository.save(customer);
+                        return ResponseEntity.ok("Order status updated successfully");
+                    }
+                    return ResponseEntity.ok("Invalid Order Status");
+                }
+            }
+            return ResponseEntity.badRequest().body("Order Id Not Found");
         } catch (Exception e){
             return ResponseEntity.badRequest().body(null);
         }
@@ -295,9 +312,16 @@ public class CustomerService {
             if (savedOrder.getStatusCode().is2xxSuccessful()) {
                 Order savedOrderObject = savedOrder.getBody();
                 if (savedOrderObject != null) {
-                    System.out.println("Order ID: " + savedOrderObject.getOrderId());
-                    customer.getActiveOrders().add(savedOrderObject.getOrderId());
-                    customer.setOrderStatus(Customer.OrderStatus.IN_QUEUE);
+                    if(customer.getActiveOrders()==null){
+                        customer.setActiveOrders(new ArrayList<>());
+                    }
+                    ActiveOrder activeOrder = new ActiveOrder();
+                    activeOrder.setOrderId(savedOrderObject.getOrderId());
+                    activeOrder.setOrderStatus(OrderStatus.IN_QUEUE);
+                    customer.getActiveOrders().add(activeOrder);
+                    customer.setTotalCost(0);
+                    customer.setCartItems(null);
+                    customerRepository.save(customer);
                     return ResponseEntity.ok("Order placed successfully");
                 } else {
                     return ResponseEntity.badRequest().body("Error: Response body is null");
