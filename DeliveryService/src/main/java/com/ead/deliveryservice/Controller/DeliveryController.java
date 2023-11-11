@@ -23,8 +23,8 @@ public class DeliveryController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<String> addDelivery(@RequestBody Delivery delivery) {
-        return deliveryService.addDelivery(delivery);
+    public ResponseEntity<?> addDelivery(@RequestBody Delivery delivery) {
+        return ResponseEntity.ok(deliveryService.addDelivery(delivery));
     }
 
     @PutMapping("/updateStatus/{deliveryId}/{status}")

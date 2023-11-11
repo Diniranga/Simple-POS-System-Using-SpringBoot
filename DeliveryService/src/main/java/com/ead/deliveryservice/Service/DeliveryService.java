@@ -30,10 +30,9 @@ public class DeliveryService {
         }
     }
 
-    public ResponseEntity<String> addDelivery(Delivery delivery) {
+    public ResponseEntity<?> addDelivery(Delivery delivery) {
         delivery.setDeliveryId(generateDeliveryId());
-        deliveryRepository.save(delivery);
-        return ResponseEntity.ok("Delivery added successfully");
+        return ResponseEntity.ok(deliveryRepository.save(delivery));
     }
 
     public ResponseEntity<String> updateStatus(String deliveryId, DeliveryStatus status) {

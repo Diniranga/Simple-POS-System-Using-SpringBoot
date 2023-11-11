@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class ActiveOrder {
+public class PlacedOrder {
     private String OrderId;
     private OrderStatus orderStatus;
 }

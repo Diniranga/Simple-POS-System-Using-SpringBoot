@@ -23,7 +23,7 @@ public class Customer {
     private String address;
     private List<CartItem> cartItems;
     private int totalCost;
-    private List<ActiveOrder> activeOrders;
+    private List<PlacedOrder> allOrders;
     private String password;
 
 

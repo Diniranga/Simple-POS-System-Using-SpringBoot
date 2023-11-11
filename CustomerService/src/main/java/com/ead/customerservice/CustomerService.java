@@ -234,13 +234,13 @@ public class CustomerService {
         try {
             Customer customer = customerRepository.findById(userId)
                     .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
-            List<ActiveOrder> activeOrders = customer.getActiveOrders();
-            if(activeOrders == null){
+            List<PlacedOrder> placedOrders = customer.getAllOrders();
+            if(placedOrders == null){
                 return ResponseEntity.ok("No active orders Found");
             }
-            for(ActiveOrder activeOrder : activeOrders){
-                if(Objects.equals(activeOrder.getOrderId(), orderId)){
-                    return ResponseEntity.ok(activeOrder.getOrderStatus());
+            for(PlacedOrder placedOrder : placedOrders){
+                if(Objects.equals(placedOrder.getOrderId(), orderId)){
+                    return ResponseEntity.ok(placedOrder.getOrderStatus());
                 }
             }
             return ResponseEntity.ok("No order found with id: " + orderId);
@@ -255,14 +255,14 @@ public class CustomerService {
         try {
             Customer customer = customerRepository.findById(userId)
                     .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
-            List<ActiveOrder> activeOrders = customer.getActiveOrders();
-            if(activeOrders==null){
+            List<PlacedOrder> placedOrders = customer.getAllOrders();
+            if(placedOrders ==null){
                 return ResponseEntity.ok("There are no any available Active Orders");
             }
-            for(ActiveOrder activeOrder:activeOrders){
-                if(Objects.equals(activeOrder.getOrderId(), orderId)){
+            for(PlacedOrder placedOrder : placedOrders){
+                if(Objects.equals(placedOrder.getOrderId(), orderId)){
                     if(status.equals("IN_QUEUE") || status.equals("PACKING") || status.equals("READY_TO_DISPATCH") || status.equals("SHIPPED") || status.equals("DELIVERED") || status.equals("NOT_APPLICABLE")){
-                        activeOrder.setOrderStatus(OrderStatus.valueOf(status));
+                        placedOrder.setOrderStatus(OrderStatus.valueOf(status));
                         customerRepository.save(customer);
                         return ResponseEntity.ok("Order status updated successfully");
                     }
@@ -312,13 +312,13 @@ public class CustomerService {
             if (savedOrder.getStatusCode().is2xxSuccessful()) {
                 Order savedOrderObject = savedOrder.getBody();
                 if (savedOrderObject != null) {
-                    if(customer.getActiveOrders()==null){
-                        customer.setActiveOrders(new ArrayList<>());
+                    if(customer.getAllOrders()==null){
+                        customer.setAllOrders(new ArrayList<>());
                     }
-                    ActiveOrder activeOrder = new ActiveOrder();
-                    activeOrder.setOrderId(savedOrderObject.getOrderId());
-                    activeOrder.setOrderStatus(OrderStatus.IN_QUEUE);
-                    customer.getActiveOrders().add(activeOrder);
+                    PlacedOrder placedOrder = new PlacedOrder();
+                    placedOrder.setOrderId(savedOrderObject.getOrderId());
+                    placedOrder.setOrderStatus(OrderStatus.IN_QUEUE);
+                    customer.getAllOrders().add(placedOrder);
                     customer.setTotalCost(0);
                     customer.setCartItems(null);
                     customerRepository.save(customer);
@@ -346,5 +346,30 @@ public class CustomerService {
         }catch (UserNotFoundException e){
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    public ResponseEntity<?> cancelOrder(String customerId, String orderId) {
+        Customer currentCustomer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + customerId));
+
+        List<PlacedOrder> placedOrders = currentCustomer.getAllOrders();
+        if (placedOrders == null) {
+            return ResponseEntity.badRequest().body("No active orders found");
+        }
+        for (PlacedOrder placedOrder : placedOrders) {
+            if (Objects.equals(placedOrder.getOrderId(), orderId)) {
+                if (!placedOrder.getOrderStatus().equals(OrderStatus.IN_QUEUE)) {
+                    return ResponseEntity.badRequest().body("Order cannot be cancelled. Order In Processing");
+                }
+                String orderUrl = "http://localhost:8060/orders/cancelOrder/" + orderId;
+                ResponseEntity<String> response = restTemplate.exchange(orderUrl, HttpMethod.PUT, null, String.class);
+                if (response.getStatusCode().is2xxSuccessful()) {
+                    placedOrder.setOrderStatus(OrderStatus.CANCELLED);
+                    customerRepository.save(currentCustomer);
+                    return ResponseEntity.ok("Order cancelled successfully");
+                }
+            }
+        }
+        return ResponseEntity.badRequest().body("Order not found to cancel");
     }
 }

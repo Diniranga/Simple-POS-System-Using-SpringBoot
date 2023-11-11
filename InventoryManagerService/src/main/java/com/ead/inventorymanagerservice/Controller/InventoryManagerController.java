@@ -31,7 +31,7 @@ public class InventoryManagerController {
     }
 
     @PostMapping("/update/{inventoryManagerId}")
-    public ResponseEntity<?> updateinventoryManagerId(@PathVariable String inventoryManagerId,@RequestBody InventoryManager inventoryManager){
+    public ResponseEntity<?> updateInventoryManagerId(@PathVariable String inventoryManagerId,@RequestBody InventoryManager inventoryManager){
         return inventoryManagerService.updateInventoryManagerDetails(inventoryManagerId,inventoryManager);
     }
 
