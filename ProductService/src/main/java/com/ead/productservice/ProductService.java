@@ -84,5 +84,15 @@ public class ProductService {
         return ResponseEntity.ok(product);
     }
 
+    public ResponseEntity<?> returnQuantity(String productId, int quantity) {
+        Product product = getProductById(productId);
+        if(product == null){
+            return ResponseEntity.ok(null);
+        }
+        product.setQuantity(product.getQuantity() + quantity);
+        productRepository.save(product);
+        return ResponseEntity.ok(product);
+    }
+
 //    FILTER PRODUCT BY CATEGORY
 }

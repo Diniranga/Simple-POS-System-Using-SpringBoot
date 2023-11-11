@@ -58,6 +58,7 @@ public class OrderService {
         if(order == null){
             return ResponseEntity.badRequest().body("Order not found");
         }
+        order.setOrderStatus(orderStatus);
         RestTemplate restTemplate = new RestTemplate();
         String orderUrl = "http://localhost:8040/customers/setOrderStatus/" + order.getCustomerId() + "/" +orderId +"/" + orderStatus;
         restTemplate.put(orderUrl, null);
@@ -68,7 +69,24 @@ public class OrderService {
         return orderRepository.getOrderByOrderStatus(orderStatus);
     }
 
+    public ResponseEntity<?> cancelOrder(String orderId) {
+        Order order = orderRepository.getOrderByOrderId(orderId);
+        if(order == null){
+            return ResponseEntity.badRequest().body("Order not found");
+        }
+        if(order.getOrderStatus() == OrderStatus.CANCELLED){
+            return ResponseEntity.badRequest().body("Order already cancelled");
+        }
+        order.setOrderStatus(OrderStatus.CANCELLED);
+        RestTemplate restTemplate = new RestTemplate();
+        List<OrderItem> orderItems = order.getOrderItems();
+        if(orderItems != null){
+            for(OrderItem orderItem : orderItems){
+                String productUrl = "http://localhost:8070/products/returnQuantity/" + orderItem.getProductId() + "/" + orderItem.getQuantity();
+                restTemplate.put(productUrl, null);
+            }
+        }
+        return ResponseEntity.ok(orderRepository.save(order));
+    }
 
-
-//    WRITE A  CODE TO DELETE ORDER
 }

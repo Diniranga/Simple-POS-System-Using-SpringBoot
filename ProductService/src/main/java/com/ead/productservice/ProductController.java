@@ -64,4 +64,9 @@ public class ProductController {
         return productService.checkAvailability(productId, quantity);
     }
 
+    @PutMapping("/returnQuantity/{productId}/{quantity}")
+    public ResponseEntity<?> returnQuantity(@PathVariable String productId, @PathVariable int quantity){
+        return productService.returnQuantity(productId, quantity);
+    }
+
 }

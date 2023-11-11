@@ -88,4 +88,9 @@ public class CustomerController {
     public ResponseEntity<?> deleteCart(@PathVariable String userId){
         return customerService.clearCart(userId);
     }
+
+    @PutMapping("/cancelOrder/{customerId}/{orderId}")
+    public ResponseEntity<?> cancelOrder(@PathVariable String customerId,@PathVariable String orderId){
+        return customerService.cancelOrder(customerId,orderId);
+    }
 }

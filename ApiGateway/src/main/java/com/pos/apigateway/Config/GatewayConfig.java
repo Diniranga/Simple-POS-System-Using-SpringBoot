@@ -49,6 +49,10 @@ public class GatewayConfig {
                         .path("/deliveryPerson/**")
                         .filters(f -> f.filter(authGatewayFilterFactory.apply(new AuthGatewayFilterFactory.Config(new String[]{"DELIVERY_PERSON","ADMIN"}))))
                         .uri("http://localhost:8050"))
+                .route("order-service.", r -> r
+                        .path("/orders/cancelOrder/**")
+                        .filters(f -> f.filter(authGatewayFilterFactory.apply(new AuthGatewayFilterFactory.Config(new String[]{"DELIVERY_PERSON","INVENTORY_KEEPER","ADMIN","CUSTOMER"}))))
+                        .uri("http://localhost:8060"))
                 .route("order-service", r -> r
                         .path("/orders/**")
                         .filters(f -> f.filter(authGatewayFilterFactory.apply(new AuthGatewayFilterFactory.Config(new String[]{"DELIVERY_PERSON","INVENTORY_KEEPER","ADMIN"}))))
