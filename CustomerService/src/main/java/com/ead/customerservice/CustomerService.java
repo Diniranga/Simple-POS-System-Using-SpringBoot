@@ -6,6 +6,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -19,6 +20,12 @@ public class CustomerService {
 
     @Autowired
     private CustomerRepository customerRepository;
+
+    private final KafkaTemplate<String, String> kafkaTemplate;
+
+    public CustomerService(KafkaTemplate<String, String> kafkaTemplate) {
+        this.kafkaTemplate = kafkaTemplate;
+    }
 
     RestTemplate restTemplate = new RestTemplate();
 
@@ -264,6 +271,12 @@ public class CustomerService {
                     if(status.equals("IN_QUEUE") || status.equals("PACKING") || status.equals("READY_TO_DISPATCH") || status.equals("SHIPPED") || status.equals("DELIVERED") || status.equals("NOT_APPLICABLE")){
                         placedOrder.setOrderStatus(OrderStatus.valueOf(status));
                         customerRepository.save(customer);
+                        ArrayList<String> emailData = new ArrayList<>();
+                        emailData.add(customer.getEmail());
+                        emailData.add(status);
+                        ObjectMapper objectMapper = new ObjectMapper();
+                        String emailDataString = objectMapper.writeValueAsString(emailData);
+                        kafkaTemplate.send(status,emailDataString);
                         return ResponseEntity.ok("Order status updated successfully");
                     }
                     return ResponseEntity.ok("Invalid Order Status");

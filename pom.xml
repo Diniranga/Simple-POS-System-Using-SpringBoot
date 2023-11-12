@@ -21,6 +21,7 @@
         <module>CustomerService</module>
         <module>DeliveryService</module>
         <module>OrderServer</module>
+        <module>kafka-server</module>
     </modules>
     <properties>
         <java.version>17</java.version>
