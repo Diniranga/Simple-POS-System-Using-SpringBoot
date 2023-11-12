@@ -268,12 +268,13 @@ public class CustomerService {
             }
             for(PlacedOrder placedOrder : placedOrders){
                 if(Objects.equals(placedOrder.getOrderId(), orderId)){
-                    if(status.equals("IN_QUEUE") || status.equals("PACKING") || status.equals("READY_TO_DISPATCH") || status.equals("SHIPPED") || status.equals("DELIVERED") || status.equals("NOT_APPLICABLE")){
+                    if(status.equals("IN_QUEUE") || status.equals("PACKING") || status.equals("READY_TO_DISPATCH") || status.equals("SHIPPED") || status.equals("DELIVERED") || status.equals("NOT_APPLICABLE") || status.equals("CANCELLED")){
                         placedOrder.setOrderStatus(OrderStatus.valueOf(status));
                         customerRepository.save(customer);
                         ArrayList<String> emailData = new ArrayList<>();
                         emailData.add(customer.getEmail());
                         emailData.add(status);
+                        emailData.add(orderId);
                         ObjectMapper objectMapper = new ObjectMapper();
                         String emailDataString = objectMapper.writeValueAsString(emailData);
                         kafkaTemplate.send(status,emailDataString);
@@ -334,6 +335,15 @@ public class CustomerService {
                     customer.getAllOrders().add(placedOrder);
                     customer.setTotalCost(0);
                     customer.setCartItems(null);
+
+                    ArrayList<String> emailData = new ArrayList<>();
+                    emailData.add(customer.getEmail());
+                    emailData.add("IN_QUEUE");
+                    emailData.add(savedOrderObject.getOrderId());
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    String emailDataString = objectMapper.writeValueAsString(emailData);
+                    kafkaTemplate.send("IN_QUEUE",emailDataString);
+
                     customerRepository.save(customer);
                     return ResponseEntity.ok("Order placed successfully");
                 } else {
@@ -361,7 +371,7 @@ public class CustomerService {
         }
     }
 
-    public ResponseEntity<?> cancelOrder(String customerId, String orderId) {
+    public ResponseEntity<?> cancelOrder(String customerId, String orderId) throws JsonProcessingException {
         Customer currentCustomer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new UserNotFoundException("User not found with id: " + customerId));
 
@@ -378,6 +388,16 @@ public class CustomerService {
                 ResponseEntity<String> response = restTemplate.exchange(orderUrl, HttpMethod.PUT, null, String.class);
                 if (response.getStatusCode().is2xxSuccessful()) {
                     placedOrder.setOrderStatus(OrderStatus.CANCELLED);
+
+                    ArrayList<String> emailData = new ArrayList<>();
+                    emailData.add(currentCustomer.getEmail());
+                    emailData.add("CANCELLED");
+                    emailData.add(orderId);
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    String emailDataString = objectMapper.writeValueAsString(emailData);
+                    kafkaTemplate.send("CANCELLED",emailDataString);
+
+
                     customerRepository.save(currentCustomer);
                     return ResponseEntity.ok("Order cancelled successfully");
                 }

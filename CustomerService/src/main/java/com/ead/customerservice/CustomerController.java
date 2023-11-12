@@ -1,6 +1,7 @@
 package com.ead.customerservice;
 
 import com.ead.customerservice.Exceptions.UserNotFoundException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -90,7 +91,7 @@ public class CustomerController {
     }
 
     @PutMapping("/cancelOrder/{customerId}/{orderId}")
-    public ResponseEntity<?> cancelOrder(@PathVariable String customerId,@PathVariable String orderId){
+    public ResponseEntity<?> cancelOrder(@PathVariable String customerId,@PathVariable String orderId) throws JsonProcessingException {
         return customerService.cancelOrder(customerId,orderId);
     }
 }
