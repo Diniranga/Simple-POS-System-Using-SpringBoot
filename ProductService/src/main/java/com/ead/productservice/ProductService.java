@@ -47,6 +47,10 @@ public class ProductService {
         if(productToUpdate == null){
             throw new ProductNotFountException("Product not found with ID :: " + id);
         }
+        if(product.getQuantity()<0){
+            return ResponseEntity.badRequest().body("Quantity cannot be negative");
+        }
+
         productToUpdate.setProductName(product.getProductName());
         productToUpdate.setUnitPrice(product.getUnitPrice());
         productToUpdate.setQuantity(product.getQuantity());
@@ -94,5 +98,4 @@ public class ProductService {
         return ResponseEntity.ok(product);
     }
 
-//    FILTER PRODUCT BY CATEGORY
 }
